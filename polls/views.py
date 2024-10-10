@@ -3,6 +3,7 @@ from .models import *
 from django.shortcuts import render, get_object_or_404
 from django.http import Http404
 from django.urls import reverse
+from django.db.models import F
 
 def index(request):
     #order_by('-pub_date') 는 내림차순 정렬 가장 최근의 항목부터 가장 오래된 것
@@ -31,10 +32,15 @@ def vote(request, question_id):
         return render(request, 'polls/detail.html', {'question' : question,
                                                      'error_message' : '선택이 없습니다.'})
     else:
-        selected_choice.votes += 1
+        # A서버에서도 Votes = 1
+        # B서버에서도 Votes = 1, B나 A의 투표 중 하나는 묵시될 수 있음. 
+        #서버가 아니라 DB에서 값을 읽어 변경해야함.
+        #selected_choice.votes += 1
+        selected_choice.votes = F('votes') + 1
         selected_choice.save()
-        return HttpResponseRedirect(reverse('polls:index'))
-
-
-def some_url(request):
-    return HttpResponse("Some url을 구현해 봤습니다.")
+        return HttpResponseRedirect(reverse('polls:result', args=(question_id,)))
+    
+def result(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+    context = {"question" : question}
+    return render(request, 'polls/result.html', context)
