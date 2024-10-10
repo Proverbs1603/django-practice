@@ -13,22 +13,19 @@ class ChoiceInline(admin.TabularInline):
 
 class QuestionAdmin(admin.ModelAdmin):
     fieldsets = [
-        ('question_text__', {'fields': ['question_text'], 'description': ['퀘스천']}),
-        ('pub_data__', {'fields': ['pub_date'], 'classes': ['collapse']}),        
+        ('question_text', {'fields': ['question_text'], 'description': ['퀘스천']}),
+        ('pub_data', {'fields': ['pub_date'], 'classes': ['collapse']}),        
     ]
     readonly_fields = ['pub_date'] #읽기모드 *auto_now_add = True 조건이면.
     inlines = [ChoiceInline]
-
-class ChoiceAdmin(admin.ModelAdmin):
-    #한글필드명은 나오지 않고있음.
-    fieldsets = [
-        ('질문 텍스트', {
-            'fields': ['choice_text']
-            }),
-        ('투표수', {
-            'fields': ['votes'], 'description': ['투표수']
-            })
-    ]
+    list_display = ('question_text', 'pub_date', 'was_published_recently') #admin 목록 페이지에 나오는 것들.
+    list_filter = ['pub_date'] #필터옵션제공 
+    search_fields = ['question_text', 'choice__choice_text'] #question_text 또는 choice_text에 따라 검색 가능
 
 admin.site.register(Question, QuestionAdmin)
-admin.site.register(Choice, ChoiceAdmin)
+
+
+'''
+inlines 옵션으로 question에서 choice까지 생성 가능하므로 choice는 register하지 않아도 됨.
+admin.site.register(Choice)
+'''
