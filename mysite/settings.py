@@ -37,7 +37,8 @@ Django에서 Migration은 데이터베이스 스키마(구조)를 관리하고
 '''
 
 INSTALLED_APPS = [
-    'polls.apps.PollsConfig',  #polls 앱의 config 추가 (migrations 만드는 과정)
+    'rest_framework',           # rest_framework 추가
+    'polls.apps.PollsConfig',  # polls 앱의 config 추가 (migrations 만드는 과정)
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
