@@ -21,4 +21,5 @@ urlpatterns = [
     #/polls로 들어오면 pools.urls에서 알아서 해라
     path('polls', include('polls.urls')),
     path('admin/', admin.site.urls),
+    path('rest/', include('polls_api.urls')),
 ]
