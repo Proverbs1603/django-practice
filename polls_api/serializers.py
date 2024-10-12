@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from polls.models import Question
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -15,18 +16,26 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'questions', 'email']
 
-    '''
-    serializers.Serializer 가 아니라 serializers.ModelSerializer 를 상속하면 아래 코드를 작성하지 않아도 됨.
-
-    id = serializers.IntegerField(read_only=True)
-    question_text = serializers.CharField(max_length=200)
-    pub_date = serializers.DateTimeField(read_only=True)
-
+class RegisterSerializer(serializers.ModelSerializer):
+    #write_only, required, validators 등의 옵션을 주기위해 별도로 작성
+    #write_only로 password는 조회가 안되도록
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password2 = serializers.CharField(write_only=True, required=True)
+    
+    def validate(self, attrs):
+        #사용자가 입력한 값인 attrs 딕셔너리에서 password와 password2를 비교
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({"password": "두 패스워드가 일치하지 않습니다."})
+        return attrs
+    
     def create(self, validated_data):
-        return Question.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        instance.question_text = validated_data.get('question_text', instance.question_text) + '[시리얼라이저에서 업데이트]'
-        instance.save()
-        return instance
-    '''
+        #원래 User에는 password2라는 field는 없어서 user를 다시 create해서 사용함.
+        user = User.objects.create(username=validated_data['username'])
+        #비밀번호를 **해싱(hash)**하여 저장하기 위해 set_password() 쓰기.
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+    
+    class Meta:
+        model = User
+        fields = ['username', 'password','password2']
