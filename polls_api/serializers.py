@@ -1,11 +1,20 @@
 from rest_framework import serializers
 from polls.models import Question
+from django.contrib.auth.models import User
 
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = ['id', 'question_text', 'pub_date']
     
+class UserSerializer(serializers.ModelSerializer):
+    #question은 user 모델에 있는 필드가 아니기 때문에 아래와 별도로 설정을 해주어야함.
+    questions = serializers.PrimaryKeyRelatedField(many=True, queryset=Question.objects.all())
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'questions', 'email']
+
     '''
     serializers.Serializer 가 아니라 serializers.ModelSerializer 를 상속하면 아래 코드를 작성하지 않아도 됨.
 
