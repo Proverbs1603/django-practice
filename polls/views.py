@@ -4,6 +4,10 @@ from django.shortcuts import render, get_object_or_404
 from django.http import Http404
 from django.urls import reverse
 from django.db.models import F
+from django.views import generic
+from django.contrib.auth.forms import UserCreationForm
+from django.urls import reverse_lazy
+
 
 def index(request):
     #order_by('-pub_date') 는 내림차순 정렬 가장 최근의 항목부터 가장 오래된 것
@@ -44,3 +48,8 @@ def result(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
     context = {"question" : question}
     return render(request, 'polls/result.html', context)
+
+class SignupView(generic.CreateView):
+    form_class = UserCreationForm
+    success_url = reverse_lazy('user-list') #성공시 user-list 라는 name 가진 url로 redirect됨.
+    template_name = 'registration/signup.html'

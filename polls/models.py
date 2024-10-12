@@ -7,8 +7,9 @@ import datetime
 class Question(models.Model):
     question_text = models.CharField(max_length=200, verbose_name='질문') #verbose는 admin페이지의 나오는 컬럼명
     pub_date = models.DateTimeField(auto_now_add=True, verbose_name='생성일') 
-    #auto_now를 True로 하면 qeustion이 업데이트 될 때마다 자동으로 날짜입력
-    #auto_now_add를 Ture로 하면 생성될 때 날짜 자동입력
+    #user.questions.all() 로 user가 가진 모든 question목록 조회 가능
+    owner = models.ForeignKey('auth.User', related_name='questions', on_delete=models.CASCADE, null=True)
+    
 
     #데코레이터 (boolean을 True로 하면 체크이미지로 보임, description은 admin페이지의 나오는 컬럼명)
     @admin.display(boolean=True, description='최근생성(하루기준)')
@@ -26,6 +27,7 @@ class Question(models.Model):
     
 
 class Choice(models.Model):
+    #ForeignKey에서 related_name을 정해주지 않으면 django에서 choice_set을 구현해줌.
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     choice_text = models.CharField(max_length=200)
     votes = models.IntegerField(default=0)
