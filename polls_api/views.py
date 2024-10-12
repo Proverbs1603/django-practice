@@ -1,45 +1,15 @@
-from rest_framework.decorators import api_view
 from polls.models import Question
 from polls_api.serializers import QuestionSerializer
-from rest_framework.response import Response
-from rest_framework import status
-from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView 
+from rest_framework import generics
 
-class QuestionList(APIView):
-    def get(self, request):
-        questions = Question.objects.all()
-        serializer  = QuestionSerializer(questions, many = True)
-        return Response(serializer.data)    
+#ListCreateAPIView는 mixin의 list와 create를 상속받음.
+class QuestionList(generics.ListCreateAPIView):
+    queryset = Question.objects.all()    #GenericAPIView 에서 기능 제공
+    serializer_class = QuestionSerializer  #GenericAPIView 에서 기능 제공
 
-    def post(self, request):
-        serializer = QuestionSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #get,과 post가 ListCreateAPIView에 구현되어있음.
 
-
-class QuestionDetail(APIView):
-    def get(self, request, id):
-        question = get_object_or_404(Question, pk=id)
-        serializer = QuestionSerializer(question)
-        return Response(serializer.data)
-        
-    def put(self, request, id):
-        question = get_object_or_404(Question, pk=id)
-        serializer = QuestionSerializer(question, data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-    def delete(self, request, id):
-        question = get_object_or_404(Question, pk=id)
-        question.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-        
-
-
+#RetrieveModelMixin 은 1개를 get
+class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
