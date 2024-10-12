@@ -4,9 +4,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 
 class QuestionSerializer(serializers.ModelSerializer):
+    #owner의 username으로 보임
+    owner = serializers.ReadOnlyField(source='owner.username')
     class Meta:
         model = Question
-        fields = ['id', 'question_text', 'pub_date']
+        fields = ['id', 'question_text', 'pub_date', 'owner']
     
 class UserSerializer(serializers.ModelSerializer):
     #question은 user 모델에 있는 필드가 아니기 때문에 아래와 별도로 설정을 해주어야함.
