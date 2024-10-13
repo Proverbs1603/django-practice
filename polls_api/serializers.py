@@ -4,9 +4,17 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 
 class ChoiceSerializer(serializers.ModelSerializer): 
+    #메서드로 필드값을 수정해서 불러온다.
+    votes_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Choice
-        fields = ['choice_text', 'votes']
+        fields = ['choice_text', 'votes_count']
+    
+    #get_필드명이 default 메소드명 , obj는 직렬화 중인 Choice 인스턴스
+    def get_votes_count(self, obj):
+        #vote_set중에 choice_id가 해당 인스턴스인 것의 개수 return 
+        return obj.vote_set.count()
 
 class QuestionSerializer(serializers.ModelSerializer):
     #owner의 username으로 보임
