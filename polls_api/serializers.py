@@ -1,19 +1,29 @@
 from rest_framework import serializers
-from polls.models import Question
+from polls.models import Question, Choice
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+
+class ChoiceSerializer(serializers.ModelSerializer): 
+    class Meta:
+        model = Choice
+        fields = ['choice_text', 'votes']
 
 class QuestionSerializer(serializers.ModelSerializer):
     #owner의 username으로 보임
     owner = serializers.ReadOnlyField(source='owner.username')
+    choices = ChoiceSerializer(many=True, read_only=True)
+
     class Meta:
         model = Question
-        fields = ['id', 'question_text', 'pub_date', 'owner']
+        fields = ['id', 'question_text', 'pub_date', 'owner', 'choices']
     
 class UserSerializer(serializers.ModelSerializer):
     #question은 user 모델에 있는 필드가 아니기 때문에 아래와 별도로 설정을 해주어야함.
-    questions = serializers.PrimaryKeyRelatedField(many=True, queryset=Question.objects.all())
-
+    #questions = serializers.PrimaryKeyRelatedField(many=True, queryset=Question.objects.all())
+    #questions = serializers.StringRelatedField(many=True, read_only=True)
+    #questions = serializers.SlugRelatedField(many=True, read_only=True, slug_field='pub_date')
+    questions = serializers.HyperlinkedRelatedField(many=True, read_only=True, view_name='question-detail')
+    
     class Meta:
         model = User
         fields = ['id', 'username', 'questions', 'email']
