@@ -1,7 +1,15 @@
 from rest_framework import serializers
-from polls.models import Question, Choice
+from polls.models import Question, Choice, Vote
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+
+class VoteSerializer(serializers.ModelSerializer):
+    #User의 username 으로 보이게
+    voter = serializers.ReadOnlyField(source='voter.username')
+    
+    class Meta:
+        model = Vote
+        fields = ['id', 'question', 'choice', 'voter']
 
 class ChoiceSerializer(serializers.ModelSerializer): 
     #메서드로 필드값을 수정해서 불러온다.
