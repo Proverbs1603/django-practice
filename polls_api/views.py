@@ -12,9 +12,17 @@ class VoteList(generics.ListCreateAPIView):
     def get_queryset(self, *args, **kwargs):
         return Vote.objects.filter(voter=self.request.user)
 
-    #현재 로그인 되어있는 사용자로 voter 지정
-    def perform_create(self, serializer):
-        serializer.save(voter=self.request.user)
+    def create(self, request, *args, **kwargs):
+        new_data = request.data.copy()
+        # user.id로 받은 이유는 딕셔너리 형태의 원시 데이터에선 
+        # 사용자의 id를 넣어야 직렬화가 제대로 수행되기 때문.
+        new_data['voter'] = request.user.id
+        serializer = self.get_serializer(data=new_data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
 
 class VoteDetial(generics.RetrieveUpdateDestroyAPIView):
     queryset = Vote.objects.all()
@@ -22,6 +30,14 @@ class VoteDetial(generics.RetrieveUpdateDestroyAPIView):
     # List는 조회는 get_queryset()을 override해서 조회를 조절하고
     # detail은 permissions을 조절해서 authorization 해준다.
     permission_classes = [permissions.IsAuthenticated, IsVoter]
+
+    def perform_update(self, serializer):
+        '''voter=self.request.user: 직렬화 후에 
+           객체 기반의 데이터로 처리되는 부분에서,
+           User 객체 자체를 사용.
+           ORM이 자동으로 객체의 ID를 처리해줌.
+        '''
+        serializer.save(voter=self.request.user)
 
 
         
