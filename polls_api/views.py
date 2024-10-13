@@ -1,9 +1,30 @@
-from polls.models import Question
-from polls_api.serializers import QuestionSerializer, UserSerializer, RegisterSerializer
+from polls.models import Question, Vote
+from polls_api.serializers import QuestionSerializer, UserSerializer, RegisterSerializer, VoteSerializer
 from rest_framework import generics, permissions
 from django.contrib.auth.models import User
-from .permissions import IsOwnerOrReadOnly
+from .permissions import IsOwnerOrReadOnly, IsVoter
 
+class VoteList(generics.ListCreateAPIView):
+    serializer_class = VoteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    #내가 만든 Vote만 봐야함 (현재 접속한 user가 voter가 같은것), queryset = 
+    def get_queryset(self, *args, **kwargs):
+        return Vote.objects.filter(voter=self.request.user)
+
+    #현재 로그인 되어있는 사용자로 voter 지정
+    def perform_create(self, serializer):
+        serializer.save(voter=self.request.user)
+
+class VoteDetial(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Vote.objects.all()
+    serializer_class = VoteSerializer
+    # List는 조회는 get_queryset()을 override해서 조회를 조절하고
+    # detail은 permissions을 조절해서 authorization 해준다.
+    permission_classes = [permissions.IsAuthenticated, IsVoter]
+
+
+        
 #ListCreateAPIView는 mixin의 list와 create를 상속받음.
 class QuestionList(generics.ListCreateAPIView):
     queryset = Question.objects.all()    #GenericAPIView 에서 기능 제공
