@@ -1,5 +1,5 @@
 <h1>{{question.question_text}}</h1></br>
-{% for choice in question.choice_set.all %}
+{% for choice in question.choices.all %}
     
     <label>
         {{choice.choice_text}} -- {{choice.votes}}

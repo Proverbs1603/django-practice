@@ -31,7 +31,7 @@ def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
     #인풋 name이 choice라서 request의 POST에 choice가 전달됨.
     try:
-        selected_choice = question.choice_set.get(pk=request.POST['choice'])
+        selected_choice = question.choices.get(pk=request.POST['choice'])
     except (KeyError, Choice.DoesNotExist):
         return render(request, 'polls/detail.html', {'question' : question,
                                                      'error_message' : '선택이 없습니다.'})
