@@ -2,6 +2,38 @@ from django.test import TestCase
 from polls_api.serializers import QuestionSerializer, VoteSerializer
 from django.contrib.auth.models import User
 from polls.models import Question, Choice, Vote
+from rest_framework.test import APITestCase
+from django.urls import reverse #메서드 레벨에서는 reverse-lazy보다 reverse 쓴다.
+from rest_framework import status
+from django.utils import timezone
+
+class QuestionListTest(APITestCase):
+    def setUp(self):
+        self.question_data = {'question_text': 'some question'}
+        self.url = reverse('question-list') #urls.py에 정의된 urlpattern name
+
+    def test_create_question(self):
+        # user = User.objects.create(username='testuser', password='testpass')
+        # #클라이언트 강제 로그인 (APITestCase 상속 받은 이유)
+        # self.client.force_authenticate(user=user)
+        # #self.url로 post 요청
+        # response = self.client.post(self.url, self.question_data)
+        # self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # self.assertEqual(Question.objects.count(), 1)
+        # question = Question.objects.first()
+        # self.assertEqual(question.question_text, self.question_data['question_text'])
+        # #1초 안에 동작하는지 테스트
+        # self.assertLess((timezone.now - question.pub_date).total_seconds(), 1)
+
+        user =User.objects.create(username='testuser', password='testpass')
+        self.client.force_authenticate(user=user)
+        response = self.client.post(self.url, self.question_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Question.objects.count(), 1)
+        question = Question.objects.first()
+        self.assertEqual(question.question_text, self.question_data['question_text'])
+        self.assertLess((timezone.now() - question.pub_date).total_seconds(), 1)
+
 
 class VoteSerializerTest(TestCase):
     # test 실행시 setUp됨
