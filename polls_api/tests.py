@@ -13,26 +13,36 @@ class QuestionListTest(APITestCase):
         self.url = reverse('question-list') #urls.py에 정의된 urlpattern name
 
     def test_create_question(self):
-        # user = User.objects.create(username='testuser', password='testpass')
-        # #클라이언트 강제 로그인 (APITestCase 상속 받은 이유)
-        # self.client.force_authenticate(user=user)
-        # #self.url로 post 요청
-        # response = self.client.post(self.url, self.question_data)
-        # self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # self.assertEqual(Question.objects.count(), 1)
-        # question = Question.objects.first()
-        # self.assertEqual(question.question_text, self.question_data['question_text'])
-        # #1초 안에 동작하는지 테스트
-        # self.assertLess((timezone.now - question.pub_date).total_seconds(), 1)
-
         user =User.objects.create(username='testuser', password='testpass')
+        # 클라이언트 강제 로그인 (APITestCase 상속 받은 이유)
         self.client.force_authenticate(user=user)
+        # self.url로 post 요청
         response = self.client.post(self.url, self.question_data)
+        # 응답 201번인지 확인
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # 생성된 객체가 1개인지 확인
         self.assertEqual(Question.objects.count(), 1)
         question = Question.objects.first()
+        # 내가 넣은 데이터가 맞는지 확인
         self.assertEqual(question.question_text, self.question_data['question_text'])
+        # #1초 안에 동작하는지 테스트
         self.assertLess((timezone.now() - question.pub_date).total_seconds(), 1)
+    
+    #로그인 없이 post 요청은 안되어야함
+    def test_create_question_without_authentication(self):
+        response = self.client.post(self.url, self.question_data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_list_question(self):
+        # Question 객체 2개 만들고 응답, 객체수, 생성객체 확인해보기
+        question = Question.objects.create(question_text='Question1')
+        choice = Choice.objects.create(question=question, choice_text='Choice1')
+        Question.objects.create(question_text='Question2')
+        response = self.client.get(self.url)
+        # print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]['choices'][0]['choice_text'], choice.choice_text)
 
 
 class VoteSerializerTest(TestCase):
